@@ -21,6 +21,7 @@ class Petsonic
 
   def export_csv(category_path)
     File.write("export.csv", @products.map(&:to_csv).join)
+    puts "Export of data to #{category_path} complete!"
   end
 
   private
@@ -29,19 +30,18 @@ class Petsonic
     page = 1
     html_pages = []
 
-    while page
+    #while page
+    loop do
       p "Load category page - #{page}"
 
       url = fetch_page(page)
       html = Nokogiri::HTML5(url.body_str)
 
       # indication what this page repeat previous (eg repeated last page in category)
-      unless html.xpath(".//div[contains(@class, 'af dynamic-loading next')]").empty?
-        html_pages.push(html)
-        page += 1
-      else
-        page = false
-      end
+      break if html.xpath(".//div[contains(@class, 'af dynamic-loading next')]").empty?
+
+      html_pages.push(html)
+      page += 1
     end
 
     return html_pages
