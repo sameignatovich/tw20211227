@@ -1,7 +1,9 @@
-source "https://rubygems.org"
+# frozen_string_literal: true
 
-ruby "3.1.0"
+source 'https://rubygems.org'
 
-gem "curb"
-gem "nokogiri"
-gem "ruby-progressbar"
+ruby '3.1.0'
+
+gem 'curb'
+gem 'nokogiri'
+gem 'ruby-progressbar'

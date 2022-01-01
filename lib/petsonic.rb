@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'curb'
 require 'nokogiri'
 require 'csv'
@@ -20,7 +22,7 @@ class Petsonic
   end
 
   def export_csv(category_path)
-    File.write("export.csv", @products.map(&:to_csv).join)
+    File.write('export.csv', @products.map(&:to_csv).join)
     puts "Export of data to #{category_path} complete!"
   end
 
@@ -30,7 +32,7 @@ class Petsonic
     page = 1
     html_pages = []
 
-    #while page
+    # while page
     loop do
       p "Load category page - #{page}"
 
@@ -44,7 +46,7 @@ class Petsonic
       page += 1
     end
 
-    return html_pages
+    html_pages
   end
 
   def parse_pages(pages)
@@ -58,15 +60,15 @@ class Petsonic
       end
     end
 
-    return products_urls
+    products_urls
   end
 
   def fetch_page(page_num)
     if page_num > 1
       url = "#{@category_url}?p=#{page_num}"
-      return Curl.get(url)
+      Curl.get(url)
     else
-      return Curl.get(@category_url)
+      Curl.get(@category_url)
     end
   end
 
@@ -84,12 +86,11 @@ class Petsonic
       variations.each do |li|
         vatiation_name = li.xpath(".//span[@class = 'radio_label']/text()").to_s
         price = li.xpath(".//span[@class = 'price_comb']/text()").to_s.split(' ').first
-      
+
         @products.push(["#{product_title} - #{vatiation_name}", price, product_picture])
       end
 
       urls_progress.increment
     end
   end
-
 end
