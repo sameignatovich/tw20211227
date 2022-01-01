@@ -5,6 +5,16 @@ require 'nokogiri'
 require 'csv'
 require 'ruby-progressbar'
 
+XPATH_COLLECTION = {
+  dynamic_loader: ".//div[contains(@class, 'af dynamic-loading next')]",
+  product_page_url: ".//a[@class = 'product-name']/@href",
+  product_name: "//h1[@class = 'product_main_name']/text()",
+  product_img: "//img[@id = 'bigpic']/@src",
+  product_vatiations: "//ul[contains(@class, 'attribute_radio_list')]/li",
+  vatiation_name: ".//span[@class = 'radio_label']/text()",
+  vatiation_price: ".//span[@class = 'price_comb']/text()"
+}.freeze
+
 class Petsonic
   def initialize(category_url)
     @category_url = category_url
@@ -16,7 +26,7 @@ class Petsonic
     pages = load_pages
     products_urls = parse_pages(pages)
 
-    p "Products urls count: #{products_urls.length}"
+    puts "Products urls count: #{products_urls.length}"
 
     load_products_data(products_urls)
   end
@@ -34,13 +44,13 @@ class Petsonic
 
     # while page
     loop do
-      p "Load category page - #{page}"
+      puts "Load category page - #{page}"
 
       url = fetch_page(page)
       html = Nokogiri::HTML5(url.body_str)
 
       # indication what this page repeat previous (eg repeated last page in category)
-      break if html.xpath(".//div[contains(@class, 'af dynamic-loading next')]").empty?
+      break if html.xpath(XPATH_COLLECTION[:dynamic_loader]).empty?
 
       html_pages.push(html)
       page += 1
@@ -53,7 +63,7 @@ class Petsonic
     products_urls = []
 
     pages.each do |page|
-      hrefs = page.xpath(".//a[@class = 'product-name']/@href")
+      hrefs = page.xpath(XPATH_COLLECTION[:product_page_url])
 
       hrefs.each do |href|
         products_urls.push(href.to_s)
@@ -79,13 +89,13 @@ class Petsonic
       product_html = Curl.get(url)
       html = Nokogiri::HTML5(product_html.body_str)
 
-      product_title = html.xpath("//h1[@class = 'product_main_name']/text()").to_s.strip!
-      product_picture = html.xpath("//img[@id = 'bigpic']/@src").to_s
-      variations = html.xpath("//ul[contains(@class, 'attribute_radio_list')]/li")
+      product_title = html.xpath(XPATH_COLLECTION[:product_name]).to_s.strip!
+      product_picture = html.xpath(XPATH_COLLECTION[:product_img]).to_s
+      variations = html.xpath(XPATH_COLLECTION[:product_vatiations])
 
       variations.each do |li|
-        vatiation_name = li.xpath(".//span[@class = 'radio_label']/text()").to_s
-        price = li.xpath(".//span[@class = 'price_comb']/text()").to_s.split(' ').first
+        vatiation_name = li.xpath(XPATH_COLLECTION[:variation_name]).to_s
+        price = li.xpath(XPATH_COLLECTION[:variation_price]).to_s.split(' ').first
 
         @products.push(["#{product_title} - #{vatiation_name}", price, product_picture])
       end
