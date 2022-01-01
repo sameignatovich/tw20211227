@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
+require 'set'
+require 'csv'
 require 'nokogiri'
 require 'ruby-progressbar'
-require 'set'
 
 require_relative 'common'
 require_relative 'consts'
