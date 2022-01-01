@@ -6,7 +6,7 @@ require 'csv'
 require 'ruby-progressbar'
 
 XPATH_COLLECTION = {
-  dynamic_loader: ".//div[contains(@class, 'af dynamic-loading next')]",
+  dynamic_loader: ".//button[contains(@class, 'hidden')]",
   product_page_url: ".//a[@class = 'product-name']/@href",
   product_name: "//h1[@class = 'product_main_name']/text()",
   product_img: "//img[@id = 'bigpic']/@src",
@@ -39,21 +39,25 @@ class Petsonic
   private
 
   def load_pages
-    page = 1
+    page_num = 1
     html_pages = []
 
     # while page
     loop do
-      puts "Load category page - #{page}"
+      puts "Load category page - #{page_num}"
 
-      url = fetch_page(page)
-      html = Nokogiri::HTML5(url.body_str)
+      link = "#{@category_url}?p=#{page_num}"
+      p link
 
-      # indication what this page repeat previous (eg repeated last page in category)
-      break if html.xpath(XPATH_COLLECTION[:dynamic_loader]).empty?
+      catergory_page = fetch_page(link)
+      html = Nokogiri::HTML5(catergory_page)
 
       html_pages.push(html)
-      page += 1
+      page_num += 1
+
+      puts html.xpath(".//div[@class = 'af dynamic-loading next']")
+      # indication what this page repeat previous (eg repeated last page in category)
+      break unless html.xpath(XPATH_COLLECTION[:dynamic_loader]).empty?
     end
 
     html_pages
@@ -73,12 +77,15 @@ class Petsonic
     products_urls
   end
 
-  def fetch_page(page_num)
-    if page_num > 1
-      url = "#{@category_url}?p=#{page_num}"
-      Curl.get(url)
-    else
-      Curl.get(@category_url)
+  def fetch_page(page_url)
+    c = Curl::Easy.new(page_url)
+    c.follow_location=true
+
+    begin
+      c.perform
+      c.body_str
+    rescue Curl::Err::CurlError => e
+      puts "Page loading error! Error: '#{e.class}', Page: #{page_url}"
     end
   end
 
@@ -86,7 +93,8 @@ class Petsonic
     urls_progress = ProgressBar.create(format: '%e %P% |%b>%i| %c/%C', starting_at: 0, total: products_urls.length)
 
     products_urls.each do |url|
-      product_html = Curl.get(url)
+      product_html = fetch_page(url)
+
       html = Nokogiri::HTML5(product_html.body_str)
 
       product_title = html.xpath(XPATH_COLLECTION[:product_name]).to_s.strip!
