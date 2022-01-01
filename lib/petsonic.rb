@@ -11,8 +11,8 @@ XPATH_COLLECTION = {
   product_name: "//h1[@class = 'product_main_name']/text()",
   product_img: "//img[@id = 'bigpic']/@src",
   product_vatiations: "//ul[contains(@class, 'attribute_radio_list')]/li",
-  vatiation_name: ".//span[@class = 'radio_label']/text()",
-  vatiation_price: ".//span[@class = 'price_comb']/text()"
+  variation_name: ".//span[@class = 'radio_label']/text()",
+  variation_price: ".//span[@class = 'price_comb']/text()"
 }.freeze
 
 class Petsonic
@@ -95,9 +95,9 @@ class Petsonic
 
       variations.each do |li|
         vatiation_name = li.xpath(XPATH_COLLECTION[:variation_name]).to_s
-        price = li.xpath(XPATH_COLLECTION[:variation_price]).to_s.split(' ').first
+        variation_price = li.xpath(XPATH_COLLECTION[:variation_price]).to_s.split(' ').first
 
-        @products.push(["#{product_title} - #{vatiation_name}", price, product_picture])
+        @products.push(["#{product_title} - #{vatiation_name}", variation_price, product_picture])
       end
 
       urls_progress.increment
