@@ -41,7 +41,6 @@ class Petsonic
     page_num = 1
     html_pages = []
 
-    # while page
     loop do
       link = "#{@category_url}?p=#{page_num}"
       catergory_page, category_headers = fetch_page(link)
